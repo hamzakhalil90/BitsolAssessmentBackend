@@ -25,7 +25,7 @@ class LoginView(BaseAPIView):
                 token, created = Token.objects.get_or_create(user=user)
                 return self.send_success_response(
                     message="Logged in successfully.",
-                    data={"token": token.key}
+                    data={"token": token.token}
                 )
         except Exception as err:
             logger.error(err)

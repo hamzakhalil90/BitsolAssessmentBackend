@@ -42,9 +42,9 @@ class ResponseHandler:
 class BaseAPIView(ModelViewSet):
     """Base class for API views."""
 
-    def send_response(self, status_code, msg_code, message="", data=None, pagination=None, errors_details=None):
+    def send_response(self, status_code, message="", data=None, pagination=None, errors_details=None):
         """Compose response."""
-        return ResponseHandler.generate(status_code, msg_code, data, message, pagination, errors_details)
+        return ResponseHandler.generate(status_code, data, message, pagination, errors_details)
 
     def send_success_response(self, message, data=None, pagination=None, errors_details=None):
         """Compose success response."""
@@ -54,7 +54,7 @@ class BaseAPIView(ModelViewSet):
         """Compose response for new object creation."""
         return self.send_response(status.HTTP_201_CREATED, message, data, pagination, errors_details)
 
-    def send_bad_request_response(self, message, errors_details=None, status_code=status.HTTP_400_BAD_REQUEST):
+    def send_bad_request_response(self, message=None, errors_details=None, status_code=status.HTTP_400_BAD_REQUEST):
         """Compose response for bad request."""
         return self.send_response(status_code=status_code, message=message,
                                   errors_details=errors_details)
