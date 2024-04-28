@@ -9,6 +9,11 @@ class UserListingSerializer(serializers.ModelSerializer):
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        trim_whitespace=False,
+        write_only=True
+    )
+
     class Meta:
         model = User
         fields = "__all__"
