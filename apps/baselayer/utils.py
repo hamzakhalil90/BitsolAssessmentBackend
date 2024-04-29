@@ -4,6 +4,21 @@ from django.core.mail import send_mail
 import secrets
 import string
 from User_Management_Backend import settings
+import datetime
+import jwt
+from cryptography.fernet import Fernet
+import string
+import secrets
+from django.core.mail import send_mail
+import threading
+from User_Management_Backend.settings import EMAIL_HOST_USER
+
+
+def generate_password(length=8):
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+    password = ''.join(secrets.choice(alphabet) for i in range(length))
+    return password
+
 
 def get_query_param(request, key, default):
     """
@@ -85,3 +100,44 @@ def generate_dummy_password(length=8):
     alphabet = string.ascii_letters + string.digits + string.punctuation
     password = ''.join(secrets.choice(alphabet) for _ in range(length))
     return password
+
+
+def encrypt_token(token):
+    """Encrypt the jwt token so users cannot see token content
+
+    Args:
+        token ([str]): [The jwt token]
+
+    Returns:
+        [str]: [The encrypted jwt token string]
+    """
+    secret_key_bytes = b"LD7i4Pe_VDdXhRyHSQrQe3RpIJ8RymjbU_zA0Yi4Hlg="
+    fernet = Fernet(secret_key_bytes)
+    return fernet.encrypt(token.encode()).decode("utf-8")
+
+
+def generate_access_token(user):
+    # nbf: Defines the time before which the JWT MUST NOT be accepted for processing
+    access_token_payload = {
+        'email': user.email,
+        'iat': datetime.datetime.utcnow(),
+        # 'role': users.role
+    }
+    exp_claim = {
+        "exp": access_token_payload.get("iat") + datetime.timedelta(seconds=int(settings.JWT_TOKEN_EXPIRY_DELTA))}
+    # Add expiry claim to token_payload
+    token_payload = {**access_token_payload, **exp_claim}
+    encoded_token = jwt.encode(token_payload, settings.JWT_ENCODING_SECRET_KEY, algorithm='HS256')
+    jwt_token = encrypt_token(encoded_token)
+    return jwt_token
+
+
+def send_email(password, recipient):
+    subject = "Account Created"
+    message = f"""
+    Use this password to access the app {password}
+    """
+    t = threading.Thread(target=send_mail,
+                         args=(subject, message, EMAIL_HOST_USER, recipient))
+    t.start()
+    return True

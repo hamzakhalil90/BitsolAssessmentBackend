@@ -18,16 +18,24 @@ class UserDetailSerializer(serializers.ModelSerializer):
         model = User
         fields = "__all__"
 
-    def create(self, validated_data):
-        addresses_data = validated_data.pop('addresses', [])
-        user = User.objects.create(**validated_data)
+    def to_representation(self, instance):
+        data = super(UserDetailSerializer, self).to_representation(instance)
+        data["addresses"] = AddressSerializer(
+            instance.addresses.all(), many=True).data if instance.addresses.exists() else []
+        return data
 
+    def create(self, validated_data):
+        addresses_data = self.context.get('address', [])
+        user = User.objects.create(**validated_data)
+        address_ids = []
         for address_data in addresses_data:
-            Address.objects.create(user=user, **address_data)
+            address = Address.objects.create(user=user, **address_data)
+            address_ids.append(address.id)
+        user.addresses.set(address_ids)
         return user
 
     def update(self, instance, validated_data):
-        addresses_data = validated_data.pop('addresses', [])  # Extract addresses data
+        addresses_data = self.context.get('address', [])  # Extract addresses data
 
         # Update user fields
         instance.name = validated_data.get('name', instance.name)
@@ -36,6 +44,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
         instance.save()
 
         # Update addresses
+        address_ids = []
         for address_data in addresses_data:
             address_id = address_data.get('id', None)
             if address_id:
@@ -46,6 +55,13 @@ class UserDetailSerializer(serializers.ModelSerializer):
                 address.save()
             else:
                 # If no address ID is provided, create a new address
-                Address.objects.create(user=instance, **address_data)
-
+                address = Address.objects.create(user=instance, **address_data)
+                address_ids.append(address.id)
+        instance.addresses.add(*address_ids)
         return instance
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = "__all__"

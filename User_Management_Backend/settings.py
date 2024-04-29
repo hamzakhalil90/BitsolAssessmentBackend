@@ -11,10 +11,12 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -25,6 +27,32 @@ SECRET_KEY = 'django-insecure-hbkg8p4pu_9ae3$+4k=^l7^!y&j18%-ypsh!=20p(kf^o%3(ln
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = [
+    "*",
+]
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+# JWT Configurations
+if not os.environ.get("JWT_ENCODING_ALGO"):
+    print("Please specify JWT_ENCODING_ALGO' variable in .env file")
+JWT_ENCODING_ALGO = os.environ.get("JWT_ENCODING_ALGO")
+
+if not os.environ.get("JWT_ENCODING_SECRET_KEY"):
+    print("Please specify 'JWT_ENCODING_SECRET_KEY' variable in .env file")
+JWT_ENCODING_SECRET_KEY = os.environ.get("JWT_ENCODING_SECRET_KEY")
+
+if not os.environ.get("JWT_TOKEN_EXPIRY_DELTA"):
+    print("Please specify 'JWT_TOKEN_EXPIRY_DELTA' variable in .env file")
+JWT_TOKEN_EXPIRY_DELTA = os.environ.get("JWT_TOKEN_EXPIRY_DELTA")
 
 # Application definition
 
@@ -108,7 +136,8 @@ EMAIL_PORT = os.getenv("EMAIL_PORT", 587)
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "sales.notifications@lucky-cement.com")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_USER", "AnotherHarderPassword@786")
 
-"sales.notifications@lucky-cement.com"# Password validation
+AUTHENTICATION_BACKENDS = ["apps.auth.views.AuthenticationBackend"]
+
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [

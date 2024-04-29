@@ -44,3 +44,5 @@ class UserAuthentication(BaseAuthentication):
             raise exceptions.AuthenticationFailed("User not found")
 
         return user, None
+
+
